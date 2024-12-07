@@ -1,24 +1,73 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ApiSdk } from "@bandada/api-sdk"
 
 const CreateGroup = () => {
+    const apiSdk = new ApiSdk()
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [isCredentialBased, setIsCredentialBased] = useState(false);
   const [credentialType, setCredentialType] = useState("");
+  const [followerCount, setFollowerCount] = useState("");
+  const [minTransactions, setMinTransactions] = useState("");
+  const [network, setNetwork] = useState("base");
+  const [minCommits, setMinCommits] = useState("");
+  const [repoName, setRepoName] = useState("");
   const navigate = useNavigate();
+  
+  const apiKey = "0925b7bc-ef61-436d-a587-57328b19b814";
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    console.log({
-      groupName,
-      groupDescription,
-      isCredentialBased,
-      credentialType,
-    });
-    navigate("/groups");
+
+    // Prepare group details
+    const groupCreateDetails = {
+      name: groupName,
+      description: groupDescription,
+      treeDepth: 16,
+      fingerprintDuration: 3600,
+    };
+
+    if (isCredentialBased) {
+      // Add credentials based on the selected type
+      let credentials;
+      if (credentialType === "twitter" || credentialType === "github") {
+        credentials = {
+          id: credentialType.toUpperCase() + "_FOLLOWERS",
+          criteria: {
+            minFollowers: followerCount,
+          },
+        };
+      } else if (credentialType === "blockchain") {
+        credentials = {
+          id: "BLOCKCHAIN_BALANCE",
+          criteria: {
+            minBalance: minTransactions,
+            network,
+          },
+        };
+      } else if (credentialType === "githubCommits") {
+        credentials = {
+          id: "GITHUB_COMMITS",
+          criteria: {
+            minCommits,
+            repo: repoName,
+          },
+        };
+      }
+      groupCreateDetails.credentials = credentials;
+    }
+
+    try {
+      const group = await apiSdk.createGroup(groupCreateDetails, apiKey);
+      console.log("Group created successfully:", group);
+      navigate("/groups");
+    } catch (error) {
+      console.error("Error creating group:", error);
+      alert("Failed to create the group. Please try again.");
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center px-4">
@@ -92,8 +141,120 @@ const CreateGroup = () => {
                 <option value="">Select a credential type</option>
                 <option value="twitter">Twitter Followers</option>
                 <option value="github">GitHub Followers</option>
+                <option value="blockchain">Blockchain Transactions</option>
+                <option value="githubCommits">GitHub Repository Commits</option>
               </select>
             </div>
+          )}
+          {isCredentialBased && credentialType === "twitter" && (
+            <div>
+              <label
+                htmlFor="followerCount"
+                className="block mb-2 text-sm font-medium text-gray-700"
+              >
+                Minimum Follower Count
+              </label>
+              <input
+                type="number"
+                id="followerCount"
+                value={followerCount}
+                onChange={(e) => setFollowerCount(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                required
+              />
+            </div>
+          )}
+          {isCredentialBased && credentialType === "github" && (
+            <div>
+              <label
+                htmlFor="followerCount"
+                className="block mb-2 text-sm font-medium text-gray-700"
+              >
+                Minimum Follower Count
+              </label>
+              <input
+                type="number"
+                id="followerCount"
+                value={followerCount}
+                onChange={(e) => setFollowerCount(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                required
+              />
+            </div>
+          )}
+          {isCredentialBased && credentialType === "blockchain" && (
+            <>
+              <div>
+                <label
+                  htmlFor="minTransactions"
+                  className="block mb-2 text-sm font-medium text-gray-700"
+                >
+                  Minimum Transactions
+                </label>
+                <input
+                  type="number"
+                  id="minTransactions"
+                  value={minTransactions}
+                  onChange={(e) => setMinTransactions(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="network"
+                  className="block mb-2 text-sm font-medium text-gray-700"
+                >
+                  Network
+                </label>
+                <select
+                  id="network"
+                  value={network}
+                  onChange={(e) => setNetwork(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  required
+                >
+                  <option value="base">Base</option>
+                  <option value="polygon">Polygon Amoy</option>
+                </select>
+              </div>
+            </>
+          )}
+          {isCredentialBased && credentialType === "githubCommits" && (
+            <>
+              <div>
+                <label
+                  htmlFor="minCommits"
+                  className="block mb-2 text-sm font-medium text-gray-700"
+                >
+                  Minimum Commits
+                </label>
+                <input
+                  type="number"
+                  id="minCommits"
+                  value={minCommits}
+                  onChange={(e) => setMinCommits(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="repoName"
+                  className="block mb-2 text-sm font-medium text-gray-700"
+                >
+                  Repository Name
+                </label>
+                <input
+                  type="text"
+                  id="repoName"
+                  value={repoName}
+                  onChange={(e) => setRepoName(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  required
+                />
+              </div>
+            </>
           )}
           <button
             type="submit"
