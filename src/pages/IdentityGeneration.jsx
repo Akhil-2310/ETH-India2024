@@ -37,7 +37,7 @@ const IdentityGeneration = () => {
         return;
       }
 
-      toast.success("Identity created successfully!",commitmentString, {
+      toast.success(`Identity created successfully! ${commitmentString}`, {
         position: "top-center",
         autoClose: 3000,
       });

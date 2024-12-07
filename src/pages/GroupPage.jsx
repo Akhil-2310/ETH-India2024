@@ -1,33 +1,83 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
-const groups = {
-  1: {
-    name: "Privacy Enthusiasts",
-    description: "A group for discussing privacy technologies",
-  },
-  2: {
-    name: "Blockchain Developers",
-    description: "Connect with other blockchain developers",
-  },
-  3: {
-    name: "Zero Knowledge Proofs",
-    description: "Explore the world of zero knowledge proofs",
-  },
-};
 
 const GroupPage = () => {
   const { id } = useParams();
-  const group = groups[id];
+  const [group, setGroup] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!group) {
+  useEffect(() => {
+    const fetchGroup = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch group data from Bandada API
+        const response = await fetch(
+          `https://api.bandada.pse.dev/groups/${id}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch group data");
+        }
+
+        const data = await response.json();
+        setGroup(data);
+      } catch (err) {
+        setError("Failed to load group data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroup();
+  }, [id]);
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-2xl p-8">
-          <h1 className="text-3xl font-bold text-red-600">Group not found</h1>
+          <h1 className="text-3xl font-bold text-gray-600">Loading...</h1>
         </div>
       </div>
     );
   }
+
+  if (error || !group) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-2xl p-8">
+          <h1 className="text-3xl font-bold text-red-600">
+            {error || "Group not found"}
+          </h1>
+        </div>
+      </div>
+    );
+  }
+
+  const renderCredentials = () => {
+    if (!group.credentials) {
+      return <p className="text-gray-700">This is a non-credential group.</p>;
+    }
+
+    let credentialInfo = "";
+    if (group.credentials?.id === "BLOCKCHAIN_BALANCE") {
+      credentialInfo = `Blockchain balance: Min ${group.credentials.criteria.minBalance} on ${group.credentials.criteria?.network}`;
+    } else if (group.credentials?.id === "TWITTER_FOLLOWERS") {
+      credentialInfo = `Twitter followers: Min ${group.credentials.criteria.minFollowers}`;
+    } else if (group.credentials.id === "GITHUB_FOLLOWERS") {
+      credentialInfo = `GitHub followers: Min ${group.credentials.criteria?.minFollowers}`;
+    } else if (group.credentials.id === "GITHUB_COMMITS") {
+      credentialInfo = `GitHub commits: Min ${group.credentials.criteria?.minCommits} in repository ${group.credentials.criteria?.repoName}`;
+    }
+
+    return (
+      <p className="text-gray-700">
+        This is a credential-based group with the following criteria: {credentialInfo}
+      </p>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white py-16 px-4">
@@ -40,13 +90,9 @@ const GroupPage = () => {
             <p className="text-xl mb-8 text-gray-600">{group.description}</p>
             <div className="bg-purple-50 p-6 rounded-lg">
               <h2 className="text-2xl font-semibold mb-4 text-purple-600">
-                Group Activity
+                Group Details
               </h2>
-              <p className="text-gray-700">
-                This is where group activity and discussions would be displayed.
-                Members can engage in conversations, share ideas, and
-                collaborate on projects related to {group.name}.
-              </p>
+              {renderCredentials()}
             </div>
           </div>
         </div>
