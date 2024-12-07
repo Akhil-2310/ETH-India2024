@@ -4,26 +4,55 @@ import Navbar from "../components/Navbar";
 const ChatGPTClone = () => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (input.trim() === "") return;
 
     // Add user message
     setMessages([...messages, { type: "user", content: input }]);
 
-    // Simulate AI response (replace this with actual API call in a real application)
-    setTimeout(() => {
+    // Clear input and show loading
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        "https://api.brianknows.org/api/v0/agent/knowledge",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-brian-api-key": "brian_BzdRxFtTa1fdLtisQ", // Replace with your API key
+          },
+          body: JSON.stringify({
+            prompt: input,
+            kb: "pse_kb",
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch response from the Brian API");
+      }
+
+      const data = await response.json();
+
+      // Add AI response
       setMessages((prevMessages) => [
         ...prevMessages,
-        {
-          type: "ai",
-          content: `You said: "${input}". This is a simulated AI response.`,
-        },
+        { type: "ai", content: data?.result.answer || "No response available." },
       ]);
-    }, 1000);
-
-    setInput("");
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { type: "ai", content: "Error fetching response from the API." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,6 +84,11 @@ const ChatGPTClone = () => {
                 </p>
               </div>
             ))}
+            {loading && (
+              <div className="mb-4 p-3 rounded-lg bg-gray-100 max-w-[70%]">
+                <p className="text-gray-800">Thinking...</p>
+              </div>
+            )}
           </div>
           <form onSubmit={handleSubmit} className="p-4 border-t">
             <div className="flex space-x-4">
@@ -68,8 +102,9 @@ const ChatGPTClone = () => {
               <button
                 type="submit"
                 className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                disabled={loading}
               >
-                Send
+                {loading ? "Loading..." : "Send"}
               </button>
             </div>
           </form>
