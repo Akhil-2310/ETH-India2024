@@ -58,19 +58,51 @@ const AllGroups = () => {
                 <h2 className="text-2xl font-semibold mb-3 text-purple-600">
                   Name: {group.name}
                 </h2>
-                <p className="text-gray-600 mb-6">Description: {group.description}</p>
+                <p className="text-gray-600 mb-6">
+                  Description: {group.description}
+                </p>
                 {group.credentials ? (
                   <p className="text-sm text-gray-600 mt-2">
                     Credential:{" "}
-                    {group.credentials.id?.replace("_", " ") || "N/A"} - Min
-                    Requirement:{" "}
-                    {group.credentials.criteria?.minFollowers || "N/A"}
+                    {(() => {
+                      switch (group.credentials.id) {
+                        case "TWITTER_FOLLOWERS":
+                          return `Twitter Followers - Min Followers: ${
+                            group.credentials.criteria?.minFollowers || "N/A"
+                          }`;
+                        case "GITHUB_FOLLOWERS":
+                          return `GitHub Followers - Min Followers: ${
+                            group.credentials.criteria?.minFollowers || "N/A"
+                          }`;
+                        case "BLOCKCHAIN_TRANSACTIONS":
+                          return `Blockchain Transactions - Min Transactions: ${
+                            group.credentials.criteria?.minTransactions || "N/A"
+                          }, Network: ${
+                            group.credentials.criteria?.network || "N/A"
+                          }`;
+                        case "BLOCKCHAIN_BALANCE":
+                          return `Blockchain Balance - Min Balance: ${
+                            group.credentials.criteria?.minBalance || "N/A"
+                          }, Network: ${
+                            group.credentials.criteria?.network || "N/A"
+                          }`;
+                        case "GITHUB_COMMITS":
+                          return `GitHub Commits - Min Commits: ${
+                            group.credentials.criteria?.minCommits || "N/A"
+                          }, Repository: ${
+                            group.credentials.criteria?.repoName || "N/A"
+                          }`;
+                        default:
+                          return "Unknown Credential";
+                      }
+                    })()}
                   </p>
                 ) : (
                   <p className="text-sm text-gray-600 mt-2">
                     No credential requirements
                   </p>
                 )}
+
                 <Link
                   to={`/group/${group.id}`}
                   className="inline-block bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full font-semibold transition-colors duration-300 ease-in-out hover:from-purple-700 hover:to-indigo-700"
