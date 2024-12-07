@@ -2,28 +2,59 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Identity } from "@semaphore-protocol/identity";
+import { supabase } from "./supabaseClient"; 
 
 const IdentityGeneration = () => {
+  const [identity, setIdentity] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const navigate = useNavigate();
 
-  const handleCreateIdentity = () => {
+  const handleCreateIdentity = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
+    const { privateKey, publicKey, commitment } = new Identity();
+
+    try {
+      // Save the identity commitment to state
+      const commitmentString = commitment.toString();
+      setIdentity(commitmentString);
+
+      // Store the commitment in Supabase
+      const { data, error } = await supabase.from("identities").insert([
+        {
+          commitment: commitmentString,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (error) {
+        console.error("Error storing identity in Supabase:", error);
+        toast.error("Failed to save identity. Please try again.", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+        setIsGenerating(false);
+        return;
+      }
+
       toast.success("Identity created successfully!", {
         position: "top-center",
         autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
       });
+
+      
       setTimeout(() => {
+        setIsGenerating(false);
         navigate("/create-group");
       }, 3000);
-    }, 2000);
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast.error("Something went wrong. Please try again.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      setIsGenerating(false);
+    }
   };
 
   return (
