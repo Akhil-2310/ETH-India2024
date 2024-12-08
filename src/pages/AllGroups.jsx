@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiSdk } from "@bandada/api-sdk";
+import {
+  validateCredentials,
+  githubFollowers,
+  blockchainBalance,
+  twitterFollowers,
+  blockchainTransactions,
+  githubRepositoryCommits,
+  getProvider,
+} from "@bandada/credentials";
+
 const AllGroups = () => {
-    const apiSdk = new ApiSdk();
+  const apiSdk = new ApiSdk();
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,6 +35,85 @@ const AllGroups = () => {
 
     fetchGroups();
   }, []);
+
+  const handleJoinGroup = async (group) => {
+    try {
+      if (!group.credentials) {
+        alert("This is a non-credential group. You can join directly.");
+        return;
+      }
+
+      const { id, criteria } = group.credentials;
+
+      switch (id) {
+        case githubFollowers.id: {
+          const provider = getProvider("github");
+          const accessToken = await provider.getAccessToken(
+            "clientId",
+            "clientSecret",
+            "oAuthCode",
+            "oAuthState",
+            "redirectUri"
+          );
+          const profile = await provider.getProfile(accessToken);
+
+          const isValid = await validateCredentials(
+            { id: githubFollowers.id, criteria },
+            { profile, accessTokens: { github: accessToken } }
+          );
+
+          if (!isValid) throw new Error("You do not meet the GitHub criteria.");
+          alert("You meet the GitHub criteria! You can join this group.");
+          break;
+        }
+        case twitterFollowers.id: {
+          const provider = getProvider("twitter");
+          const accessToken = await provider.getAccessToken(
+            "clientId",
+            "clientSecret",
+            "oAuthCode",
+            "oAuthState",
+            "redirectUri"
+          );
+          const profile = await provider.getProfile(accessToken);
+
+          const isValid = await validateCredentials(
+            { id: twitterFollowers.id, criteria },
+            { profile, accessTokens: { twitter: accessToken } }
+          );
+
+          if (!isValid)
+            throw new Error("You do not meet the Twitter follower criteria.");
+          alert("You meet the Twitter criteria! You can join this group.");
+          break;
+        }
+        case blockchainBalance.id: {
+          const provider = getProvider("blockchain");
+          const jsonRpcProvider = await provider.getJsonRpcProvider(
+            "https://rpc-url.com"
+          );
+
+          const isValid = await validateCredentials(
+            { id: blockchainBalance.id, criteria },
+            {
+              address: "0xYourAddress",
+              jsonRpcProvider,
+            }
+          );
+
+          if (!isValid)
+            throw new Error("You do not meet the blockchain balance criteria.");
+          alert("You meet the Blockchain criteria! You can join this group.");
+          break;
+        }
+        // Add cases for other credential types
+        default:
+          throw new Error("Unknown credential type.");
+      }
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -67,31 +156,15 @@ const AllGroups = () => {
                     {(() => {
                       switch (group.credentials.id) {
                         case "TWITTER_FOLLOWERS":
-                          return `Twitter Followers - Min Followers: ${
-                            group.credentials.criteria?.minFollowers || "N/A"
-                          }`;
+                          return `Twitter Followers - Min Followers: ${group.credentials.criteria?.minFollowers}`;
                         case "GITHUB_FOLLOWERS":
-                          return `GitHub Followers - Min Followers: ${
-                            group.credentials.criteria?.minFollowers || "N/A"
-                          }`;
+                          return `GitHub Followers - Min Followers: ${group.credentials.criteria?.minFollowers}`;
                         case "BLOCKCHAIN_TRANSACTIONS":
-                          return `Blockchain Transactions - Min Transactions: ${
-                            group.credentials.criteria?.minTransactions || "N/A"
-                          }, Network: ${
-                            group.credentials.criteria?.network || "N/A"
-                          }`;
+                          return `Blockchain Transactions - Min Transactions: ${group.credentials.criteria?.minTransactions}`;
                         case "BLOCKCHAIN_BALANCE":
-                          return `Blockchain Balance - Min Balance: ${
-                            group.credentials.criteria?.minBalance || "N/A"
-                          }, Network: ${
-                            group.credentials.criteria?.network || "N/A"
-                          }`;
+                          return `Blockchain Balance - Min Balance: ${group.credentials.criteria?.minBalance}`;
                         case "GITHUB_COMMITS":
-                          return `GitHub Commits - Min Commits: ${
-                            group.credentials.criteria?.minCommits || "N/A"
-                          }, Repository: ${
-                            group.credentials.criteria?.repoName || "N/A"
-                          }`;
+                          return `GitHub Commits - Min Commits: ${group.credentials.criteria?.minCommits}`;
                         default:
                           return "Unknown Credential";
                       }
@@ -102,13 +175,12 @@ const AllGroups = () => {
                     No credential requirements
                   </p>
                 )}
-
-                <Link
-                  to={`/group/${group.id}`}
+                <button
+                  onClick={() => handleJoinGroup(group)}
                   className="inline-block bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-full font-semibold transition-colors duration-300 ease-in-out hover:from-purple-700 hover:to-indigo-700"
                 >
                   Join Now
-                </Link>
+                </button>
               </div>
             </div>
           ))}

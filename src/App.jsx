@@ -5,6 +5,7 @@ import CreateGroup from "./pages/CreateGroup";
 import AllGroups from "./pages/AllGroups";
 import GroupPage from "./pages/GroupPage";
 import ChatGPTClone from "./pages/ChatGPTClone";
+// import CallbackPage from "./pages/CallbackPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/groups" element={<AllGroups />} />
         <Route path="/group/:id" element={<GroupPage />} />
         <Route path="/chat" element={<ChatGPTClone />} />
+        {/* <Route path="/auth/callback" element={<CallbackPage />} /> */}
       </Routes>
     </Router>
   );
