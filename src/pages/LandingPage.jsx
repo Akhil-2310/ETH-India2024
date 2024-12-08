@@ -9,7 +9,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center mb-16">
             <h1 className="text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">
-              Welcome to ZK Social
+              Welcome to ZK Soc
             </h1>
             <p className="text-xl mb-12 text-gray-700 max-w-3xl mx-auto">
               Experience the future of social networking with zero-knowledge
@@ -171,7 +171,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap justify-between items-center">
             <div className="w-full md:w-1/3 mb-6 md:mb-0">
-              <h3 className="text-2xl font-bold mb-2">ZK Social</h3>
+              <h3 className="text-2xl font-bold mb-2">ZK Soc</h3>
               <p className="text-gray-400">
                 Redefining social networking with privacy at its core.
               </p>
@@ -230,7 +230,7 @@ const LandingPage = () => {
                   </svg>
                 </a>
                 <a
-                  href="#"
+                  href="https://twitter.com/akhilnanavati"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   <svg
@@ -259,7 +259,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="mt-8 text-center text-gray-400 text-sm">
-            © {new Date().getFullYear()} ZK Social. All rights reserved.
+            © {new Date().getFullYear()} ZK Soc. All rights reserved.
           </div>
         </div>
       </footer>

@@ -8,7 +8,7 @@ const Navbar = () => {
           to="/"
           className="text-2xl font-bold tracking-tight hover:text-purple-200 transition-colors"
         >
-          ZK Social
+          ZK Soc
         </Link>
         <div className="space-x-4">
           <Link
